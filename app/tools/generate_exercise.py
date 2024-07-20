@@ -2,19 +2,18 @@ import logging
 from typing import List, Literal
 
 from app.tools.utils.ChromaDBLoader import ChromaDBLoader
-from app.tools.utils.groq_requests import async_groq_request, groq_request
+from app.tools.utils.groq_requests import async_groq_request
 from app.tools.utils.models import RetrievedDocSchema
-from app.tools.utils.openai_requests import async_openai_request, openai_request
+from app.tools.utils.openai_requests import async_openai_request
 from app.tools.utils.prompt_templates import (
     PIPELINE_QUESTION_GENERATOR_PROMPT,
     PIPELINE_QUESTION_GENERATOR_USER_PROMPT,
 )
 from app.tools.utils.question_generator_modules import (
     chromadb_retriever,
-    elasticsearch_retriever,
     query_rewriter,
-    rerank,
 )
+
 # from app.tools.utils.search_service import DataSearch
 
 logger = logging.getLogger(__name__)
@@ -118,45 +117,21 @@ async def exercise_generator(user_query: str):
 
     verbose = False
 
-    # # Retrieve the relevant content and exercises
-    # retrieved_content: List[RetrievedDocSchema] = await elasticsearch_retriever(
-    #     model_class=search_model,
-    #     retrieval_msg=rewritten_query,
-    #     size=10,
-    #     doc_type="Content",
-    #     retrieve_dense=True,
-    #     retrieve_sparse=True,
-    #     verbose=verbose,
-    # )
-    # retrieved_exercises: List[RetrievedDocSchema] = await elasticsearch_retriever(
-    #     model_class=search_model,
-    #     retrieval_msg=rewritten_query,
-    #     size=5,
-    #     doc_type="Exercise",
-    #     retrieve_dense=True,
-    #     retrieve_sparse=True,
-    #     verbose=verbose,
-    # )
-
     # Retrieve the relevant content and exercises
     retrieved_content: List[RetrievedDocSchema] = await chromadb_retriever(
         model_class=chromadb_search_model,
         retrieval_msg=rewritten_query,
-        size=10,
+        size=5,
         doc_type="Content",
         verbose=verbose,
     )
     retrieved_exercises: List[RetrievedDocSchema] = await chromadb_retriever(
         model_class=chromadb_search_model,
         retrieval_msg=rewritten_query,
-        size=5,
+        size=2,
         doc_type="Exercise",
         verbose=verbose,
     )
-
-    # Rerank the retrieved content and exercises
-    retrieved_content = rerank(original_query, retrieved_content, num_results=5)
-    retrieved_exercises = rerank(original_query, retrieved_exercises, num_results=2)
 
     # Format the context and prompt
     context = _format_context(retrieved_content, retrieved_exercises)
