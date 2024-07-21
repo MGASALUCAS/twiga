@@ -202,17 +202,11 @@ async def process_whatsapp_message(body: Any):
         # This section handles the type of message to send to the user depending on the number of options available to select from
         if options:
             if len(options) <= 3:
-                data = get_interactive_message_input(
-                    wa_id, response, options
-                )
+                data = get_interactive_message_input(wa_id, response, options)
             else:
-                data = get_interactive_list_message_input(
-                    wa_id, response, options
-                )
+                data = get_interactive_list_message_input(wa_id, response, options)
         else:
-            data = get_text_message_input(
-                wa_id, response
-            )
+            data = get_text_message_input(wa_id, response)
     else:  # Twiga Integration
         response_text = await generate_response(message_body, wa_id, name)
         if (
